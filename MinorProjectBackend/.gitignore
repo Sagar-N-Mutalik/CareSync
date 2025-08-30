@@ -31,3 +31,34 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Sensitive Information ###
+application-local.properties
+application-dev.properties
+application-prod.properties
+*.env
+.env
+.env.local
+.env.production
+.env.development
+
+### AWS Credentials ###
+aws-credentials.properties
+.aws/
+
+### Email Configuration ###
+email-config.properties
+
+### JWT Secrets ###
+jwt-secret.properties
+
+### Database Credentials ###
+db-credentials.properties
+
+### Log Files ###
+*.log
+logs/
+
+### Temporary Files ###
+*.tmp
+*.temp
