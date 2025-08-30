@@ -1,0 +1,28 @@
+# Development Environment Configuration
+# Copy this file to application-dev.properties and update with your values
+
+# MongoDB Configuration
+spring.data.mongodb.uri=mongodb://localhost:27017/secured_health_records_dev
+
+# JWT Configuration (Use a strong secret in production)
+jwt.secret=dev-secret-key-change-this-for-production-use-256-bit-key
+jwt.expiration=86400000
+
+# AWS S3 Configuration
+aws.s3.bucket-name=secured-health-records-dev-bucket
+aws.s3.region=us-east-1
+aws.access-key-id=your-dev-aws-access-key
+aws.secret-access-key=your-dev-aws-secret-key
+
+# Email Configuration
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=your-dev-email@gmail.com
+spring.mail.password=your-dev-app-password
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Logging Configuration
+logging.level.com.securedhealthrecords=DEBUG
+logging.level.org.springframework.security=DEBUG
+logging.level.org.springframework.data.mongodb=DEBUG

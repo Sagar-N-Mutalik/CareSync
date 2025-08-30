@@ -1,0 +1,34 @@
+# Production Environment Configuration
+# Copy this file to application-prod.properties and update with your values
+
+# MongoDB Configuration
+spring.data.mongodb.uri=mongodb://your-production-mongodb-uri/secured_health_records
+
+# JWT Configuration (MUST use a strong 256-bit secret)
+jwt.secret=your-production-256-bit-secret-key-here
+jwt.expiration=86400000
+
+# AWS S3 Configuration
+aws.s3.bucket-name=secured-health-records-prod-bucket
+aws.s3.region=us-east-1
+aws.access-key-id=your-prod-aws-access-key
+aws.secret-access-key=your-prod-aws-secret-key
+
+# Email Configuration
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=your-prod-email@gmail.com
+spring.mail.password=your-prod-app-password
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Logging Configuration
+logging.level.com.securedhealthrecords=INFO
+logging.level.org.springframework.security=WARN
+logging.level.org.springframework.data.mongodb=WARN
+
+# Production Security Settings
+server.error.include-message=never
+server.error.include-binding-errors=never
+server.error.include-stacktrace=never
+server.error.include-exception=false
