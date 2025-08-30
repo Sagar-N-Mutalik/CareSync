@@ -8,12 +8,12 @@ import com.securedhealthrecords.model.Node.NodeType;
 import com.securedhealthrecords.repository.NodeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -22,9 +22,7 @@ import java.util.stream.Collectors;
 public class NodeService {
     
     private final NodeRepository nodeRepository;
-    
-    @Value("${aws.s3.bucket-name}")
-    private String bucketName;
+    private final CloudinaryService cloudinaryService;
     
     public List<NodeDTO> getNodesByParent(String ownerId, String parentId) {
         List<Node> nodes = nodeRepository.findByOwnerIdAndParentId(ownerId, parentId);
@@ -45,17 +43,18 @@ public class NodeService {
         return convertToDTO(savedFolder);
     }
     
-    public NodeDTO createFileNode(String ownerId, String parentId, String name, String mimeType, String encryptedFileKey) {
+    public NodeDTO createFileNode(String ownerId, String parentId, String name, String mimeType, String encryptedFileKey, MultipartFile file) throws IOException {
         // Check if file with same name exists in parent
         if (nodeRepository.existsByOwnerIdAndParentIdAndName(ownerId, parentId, name)) {
             throw new InvalidRequestException("File with name '" + name + "' already exists");
         }
         
-        // Generate unique storage key for S3
-        String storageKey = generateStorageKey(ownerId, name);
+        // Upload file to Cloudinary
+        String folderName = parentId != null ? "folder_" + parentId : "root";
+        String cloudinaryUrl = cloudinaryService.uploadFile(file, ownerId, folderName);
         
-        Node file = new Node(ownerId, parentId, name, mimeType, storageKey, encryptedFileKey);
-        Node savedFile = nodeRepository.save(file);
+        Node fileNode = new Node(ownerId, parentId, name, mimeType, cloudinaryUrl, encryptedFileKey);
+        Node savedFile = nodeRepository.save(fileNode);
         
         return convertToDTO(savedFile);
     }
@@ -93,7 +92,13 @@ public class NodeService {
             // Delete all children recursively
             deleteNodeRecursively(nodeId);
         } else {
-            // For files, we should also delete from S3 (implement S3 service later)
+            // Delete file from Cloudinary
+            if (node.getStorageKey() != null) {
+                String publicId = cloudinaryService.extractPublicIdFromUrl(node.getStorageKey());
+                if (publicId != null) {
+                    cloudinaryService.deleteFile(publicId);
+                }
+            }
             nodeRepository.deleteById(nodeId);
         }
     }
@@ -106,7 +111,13 @@ public class NodeService {
             if (child.getType() == NodeType.FOLDER) {
                 deleteNodeRecursively(child.getId());
             } else {
-                // Delete file from S3 (implement S3 service later)
+                // Delete file from Cloudinary
+                if (child.getStorageKey() != null) {
+                    String publicId = cloudinaryService.extractPublicIdFromUrl(child.getStorageKey());
+                    if (publicId != null) {
+                        cloudinaryService.deleteFile(publicId);
+                    }
+                }
                 nodeRepository.deleteById(child.getId());
             }
         }
@@ -115,9 +126,6 @@ public class NodeService {
         nodeRepository.deleteById(nodeId);
     }
     
-    private String generateStorageKey(String ownerId, String fileName) {
-        return String.format("%s/%s_%s", ownerId, UUID.randomUUID().toString(), fileName);
-    }
     
     private NodeDTO convertToDTO(Node node) {
         NodeDTO dto = new NodeDTO();
@@ -131,9 +139,9 @@ public class NodeService {
         dto.setEncryptedFileKey(node.getEncryptedFileKey());
         dto.setCreatedAt(node.getCreatedAt());
         
-        // Generate pre-signed URL for files (implement S3 service later)
+        // Set download URL for files (Cloudinary URL is already public)
         if (node.getType() == NodeType.FILE && node.getStorageKey() != null) {
-            // dto.setDownloadUrl(s3Service.generatePresignedUrl(node.getStorageKey()));
+            dto.setDownloadUrl(node.getStorageKey()); // Cloudinary URL is the direct download URL
         }
         
         return dto;

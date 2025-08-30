@@ -7,11 +7,12 @@ import com.securedhealthrecords.repository.UserRepository;
 import com.securedhealthrecords.service.NodeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -52,19 +53,24 @@ public class NodeController {
     
     @PostMapping("/file")
     public ResponseEntity<NodeDTO> createFile(
-            @Valid @RequestBody Map<String, String> request,
-            Authentication authentication) {
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("parentId") String parentId,
+            @RequestParam("name") String name,
+            @RequestParam("mimeType") String mimeType,
+            @RequestParam("encryptedFileKey") String encryptedFileKey,
+            Authentication authentication) throws IOException {
         String userEmail = authentication.getName();
         String userId = getUserIdFromEmail(userEmail);
         
-        NodeDTO file = nodeService.createFileNode(
+        NodeDTO fileNode = nodeService.createFileNode(
             userId,
-            request.get("parentId"),
-            request.get("name"),
-            request.get("mimeType"),
-            request.get("encryptedFileKey")
+            parentId,
+            name,
+            mimeType,
+            encryptedFileKey,
+            file
         );
-        return ResponseEntity.ok(file);
+        return ResponseEntity.ok(fileNode);
     }
     
     @PutMapping("/{nodeId}")
@@ -90,8 +96,7 @@ public class NodeController {
         return ResponseEntity.noContent().build();
     }
     
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
     
     // Get userId from email using UserRepository
     private String getUserIdFromEmail(String email) {

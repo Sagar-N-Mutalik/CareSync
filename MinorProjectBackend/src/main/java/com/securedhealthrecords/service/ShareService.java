@@ -10,8 +10,8 @@ import com.securedhealthrecords.model.User;
 import com.securedhealthrecords.repository.NodeRepository;
 import com.securedhealthrecords.repository.ShareRepository;
 import com.securedhealthrecords.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,13 +23,23 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class ShareService {
     
-    private final ShareRepository shareRepository;
     private final NodeRepository nodeRepository;
+    private final ShareRepository shareRepository;
     private final UserRepository userRepository;
-    private final EmailService emailService;
+    private final MailerSendService mailerSendService;
+    private final String frontendUrl;
+    
+    public ShareService(NodeRepository nodeRepository, ShareRepository shareRepository, 
+                       UserRepository userRepository, MailerSendService mailerSendService,
+                       @Value("${frontend.url}") String frontendUrl) {
+        this.nodeRepository = nodeRepository;
+        this.shareRepository = shareRepository;
+        this.userRepository = userRepository;
+        this.mailerSendService = mailerSendService;
+        this.frontendUrl = frontendUrl;
+    }
     
     @Transactional
     public ShareDTO createShare(String ownerId, ShareDTO shareRequest) {
@@ -73,7 +83,7 @@ public class ShareService {
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
         String shareLink = generateShareLink(accessToken);
-        emailService.sendShareNotificationEmail(
+        mailerSendService.sendShareNotificationEmail(
             shareRequest.getRecipientEmail(),
             shareLink,
             owner.getFullName()
@@ -143,8 +153,7 @@ public class ShareService {
     }
     
     private String generateShareLink(String accessToken) {
-        // In production, use actual domain
-        return String.format("https://your-domain.com/share/%s", accessToken);
+        return String.format("%s/share/%s", frontendUrl, accessToken);
     }
     
     private ShareDTO convertToDTO(Share share) {

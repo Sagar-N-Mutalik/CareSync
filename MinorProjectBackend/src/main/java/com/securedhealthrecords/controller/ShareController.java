@@ -7,7 +7,6 @@ import com.securedhealthrecords.repository.UserRepository;
 import com.securedhealthrecords.service.ShareService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -59,8 +58,7 @@ public class ShareController {
         return ResponseEntity.noContent().build();
     }
     
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
     
     // Get userId from email using UserRepository
     private String getUserIdFromEmail(String email) {

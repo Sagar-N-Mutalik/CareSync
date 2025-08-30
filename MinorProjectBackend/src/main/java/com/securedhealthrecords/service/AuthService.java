@@ -22,7 +22,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final EmailService emailService;
+    private final MailerSendService mailerSendService;
     
     // In-memory OTP storage (in production, use Redis or database)
     private final Map<String, String> otpStorage = new HashMap<>();
@@ -61,7 +61,7 @@ public class AuthService {
         otpStorage.put(email, otp);
         
         // Send OTP via email
-        emailService.sendOtpEmail(email, otp);
+        mailerSendService.sendOtpEmail(email, otp);
         
         return new AuthResponseDTO("OTP sent successfully to " + email);
     }
