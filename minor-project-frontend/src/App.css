@@ -1,0 +1,40 @@
+.App {
+  min-height: 100vh;
+}
+
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 16px;
+}
+
+.loading-screen p {
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.share-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  gap: 16px;
+}
+
+.share-view h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.share-view p {
+  color: #6c757d;
+  font-size: 16px;
+  margin: 0;
+}
